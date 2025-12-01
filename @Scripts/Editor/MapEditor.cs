@@ -1,0 +1,57 @@
+using Google.Protobuf;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.Tilemaps;
+using static Define;
+
+public class MapEditor 
+{
+#if UNITY_EDITOR
+    [MenuItem("Tools/GenerateMap")]
+
+    private static void GenerateMap()
+    {
+        GameObject[] gameObjects = Selection.gameObjects;
+
+        foreach (GameObject go in gameObjects)
+        {
+            Tilemap tm = Util.FindChild<Tilemap>(go, "Tilemap_Collision", true);
+
+            using (var writer = File.CreateText($"Assets/@Resources/Data/MapData/{go.name}Collision.txt"))
+            {
+                writer.WriteLine(tm.cellBounds.xMin);
+                writer.WriteLine(tm.cellBounds.xMax);
+                writer.WriteLine(tm.cellBounds.yMin);
+                writer.WriteLine(tm.cellBounds.yMax);
+
+
+                for(int y = tm.cellBounds.yMax; y >= tm.cellBounds.yMin; y--)
+                {
+                    for(int x = tm.cellBounds.xMin; x <= tm.cellBounds.xMax; x++)
+                    {
+                        TileBase tile = tm.GetTile(new Vector3Int(x, y, 0));
+                        if (tile != null)
+                        {
+                            if (tile.name.Contains("O"))
+                                writer.Write(1);
+                            else
+                                writer.Write(0);
+                        }
+                        else
+                        {
+                            writer.Write(0);
+                        }
+                    }
+                    writer.WriteLine();
+
+                }
+                
+            }
+        }
+        Debug.Log("Map Collision Generation Complete");
+    }
+#endif
+}
